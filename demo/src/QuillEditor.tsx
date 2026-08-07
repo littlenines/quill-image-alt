@@ -1,0 +1,60 @@
+import { forwardRef, useEffect, useRef } from 'react'
+import Quill from 'quill'
+import ImageResize from 'resize-quill-image'
+import AltText from 'quill-image-alt'
+import 'quill/dist/quill.snow.css'
+import './QuillEditor.css'
+
+Quill.register('modules/imageResize', ImageResize)
+Quill.register('modules/altText', AltText)
+
+const toolbarOptions = [
+  [{ header: [1, 2, 3, false] }],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  ['link', 'image'],
+  ['clean'],
+]
+
+const QuillEditor = forwardRef<Quill | null>(function QuillEditor(_props, ref) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const editorEl = document.createElement('div')
+    container.appendChild(editorEl)
+
+    const quill = new Quill(editorEl, {
+      theme: 'snow',
+      placeholder: 'Compose an epic...',
+      modules: {
+        toolbar: toolbarOptions,
+        imageResize: {
+          helpIcon: true,
+          displaySize: true,
+        },
+        altText: true,
+      },
+    })
+
+    if (typeof ref === 'function') ref(quill)
+    else if (ref) ref.current = quill
+
+    return () => {
+      const imageResizeModule = quill.getModule('imageResize') as ImageResize
+      const altTextModule = quill.getModule('altText') as AltText
+      imageResizeModule.destroy()
+      altTextModule.destroy()
+      container.innerHTML = ''
+
+      if (typeof ref === 'function') ref(null)
+      else if (ref) ref.current = null
+    }
+  }, [ref])
+
+  return <div className="quill-editor" ref={containerRef} />
+})
+
+export default QuillEditor
