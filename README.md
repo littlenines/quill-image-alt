@@ -8,6 +8,9 @@
   <img src="https://img.shields.io/npm/l/quill-image-alt?style=flat" alt="license" />
   <img src="https://img.shields.io/npm/dt/quill-image-alt?style=flat&color=blue&cacheSeconds=3600" alt="downloads" />
   <img src="https://img.shields.io/badge/Quill_compatible-2.0.3-blue?style=flat&cacheSeconds=3600" alt="Quill compatible 2.0.3" />
+  <a href="https://quill-image-alt.vercel.app/">
+    <img src="https://img.shields.io/badge/Live-Demo-00c7b7?logo=vercel&logoColor=white&style=flat-square" alt="Live Demo" />
+  </a>
 </p>
 
 A lightweight [Quill](https://quilljs.com/) module for adding and editing image `alt` text directly inside the editor.
@@ -41,6 +44,9 @@ Pairs well with [`resize-quill-image`](https://www.npmjs.com/package/resize-quil
 ---
 
 ## [Demo](#demo)
+
+### Live
+[Check out the live demo](https://quill-image-alt.vercel.app/)
 
 ![Badge and popover open on an image, prompting for alt text](https://raw.githubusercontent.com/littlenines/quill-image-alt/master/images/example.png)
 

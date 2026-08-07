@@ -18,8 +18,8 @@ function App() {
 
   return (
     <section id="editor-page">
-      <h1>Quill Editor</h1>
-      <p>Insert an image from the toolbar, then drag its corner handles to resize it.</p>
+      <h1>Quill Editor - Image Alt</h1>
+      <p>Insert an image from the toolbar and hover over it or click it to see Alt button.</p>
       <QuillEditor ref={quillRef} />
 
       <button onClick={handleShowContent} style={{ marginTop: '1rem' }}>
