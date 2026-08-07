@@ -1,11 +1,20 @@
 <p align="center">
-  <img src="images/altlogo.png" alt="" width="180" />
+  <img src="https://raw.githubusercontent.com/littlenines/quill-image-alt/master/images/altlogo.png" alt="" width="180" />
 </p>
 <h1 align="center">quill-image-alt</h1>
+<p align="center">
+  <img src="https://img.shields.io/npm/v/quill-image-alt" alt="version" />
+  <img src="https://img.shields.io/bundlephobia/minzip/quill-image-alt?style=flat" alt="size" />
+  <img src="https://img.shields.io/npm/l/quill-image-alt?style=flat" alt="license" />
+  <img src="https://img.shields.io/npm/dt/quill-image-alt?style=flat&color=blue&cacheSeconds=3600" alt="downloads" />
+  <img src="https://img.shields.io/badge/Quill_compatible-2.0.3-blue?style=flat&cacheSeconds=3600" alt="Quill compatible 2.0.3" />
+</p>
 
-A lightweight [Quill](https://quilljs.com/) module for adding and editing image `alt` text directly inside the editor — no separate dialog, no leaving the document.
+A lightweight [Quill](https://quilljs.com/) module for adding and editing image `alt` text directly inside the editor.
 
-Hovering (or selecting) an image shows a small badge anchored to it. The badge is orange when the image has no `alt` text yet, so missing alt text is visible at a glance. Clicking it opens a small inline input to set or edit the description.
+Hovering/Selecting an image shows a small badge anchored to it. The badge is orange when the image has no `alt` text yet, so missing alt text is visible at a glance. Clicking it opens a small inline input to set or edit the description.
+
+Pairs well with [`resize-quill-image`](https://www.npmjs.com/package/resize-quill-image) — both modules can be registered on the same Quill instance and coexist correctly on the same image, including while it's selected for resizing.
 
 ---
 - [Demo](#demo)
@@ -33,7 +42,7 @@ Hovering (or selecting) an image shows a small badge anchored to it. The badge i
 
 ## [Demo](#demo)
 
-![Badge and popover open on an image, prompting for alt text](images/example.png)
+![Badge and popover open on an image, prompting for alt text](https://raw.githubusercontent.com/littlenines/quill-image-alt/master/images/example.png)
 
 ## [Installation](#installation)
 
@@ -42,6 +51,8 @@ Hovering (or selecting) an image shows a small badge anchored to it. The badge i
 ```bash
 npm install quill-image-alt
 ```
+
+> **Compatible with [`react-quill-new`](https://www.npmjs.com/package/react-quill-new)** — works out of the box since `react-quill-new` uses Quill 2.x under the hood.
 
 ### [CDN](#cdn)
 
@@ -76,7 +87,7 @@ Then register and use it:
 </script>
 ```
 
-> **Note:** Quill must be loaded before `quill-image-alt`. The IIFE build reads `Quill` from the global scope at load time.
+> **Note:** Quill must be loaded before `quill-image-alt`.
 
 ---
 
@@ -111,10 +122,10 @@ const quill = new Quill(editorContainer, {
 
 ## [How it works](#how-it-works)
 
-- **Hover an image** → a small badge appears at its edge (`top-center` by default). Orange means the image has no `alt` text; the neutral color means it does.
+- **Hover an image** → a small badge appears at its edge (`top-center` by default). Orange means the image has no `alt` text, the neutral color means it does.
 - **Click the badge** → an inline input opens, pre-filled with the current `alt` text.
 - **Enter** saves, **Escape** discards the edit and closes the input without changing anything.
-- **Selecting an image** (e.g. via keyboard navigation, or programmatically) also pins the badge visible, even without hovering — this matters if something else draws a selection overlay on top of the image, which would otherwise block further hover events on it.
+- **Selecting an image** also pins the badge visible, even without hovering.
 
 ---
 
