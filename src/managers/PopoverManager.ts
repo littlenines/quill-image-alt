@@ -55,23 +55,21 @@ export class PopoverManager {
     saveButton.setAttribute('aria-label', 'Save alt text')
     saveButton.title = 'Save'
     saveButton.innerHTML = SAVE_ICON
-    saveButton.addEventListener('click', () => this.callbacks.onSave(input.value))
 
-    // Clicking the button would normally blur the input first, and the
-    // input's own blur handler already saves on blur - blocking the
-    // mousedown's default action keeps focus (and blur) from firing at
-    // all, so the button's own click handler is the only thing that runs.
+    saveButton.addEventListener('click', () => this.callbacks.onSave(input.value))
     saveButton.addEventListener('mousedown', (event) => event.preventDefault())
 
     row.appendChild(input)
     row.appendChild(saveButton)
 
     const hint = document.createElement('span')
+
     hint.className = 'ql-alt-hint'
     hint.textContent = 'Enter to save · Esc to cancel'
 
     popover.appendChild(row)
     popover.appendChild(hint)
+    
     this.parent.appendChild(popover)
 
     this.element = popover
