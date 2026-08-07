@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 07-08-2026
+### Added
+- Save button in the alt-text popover — Enter is no longer the only way to save
+- `name` attribute on the alt-text input
+
+### Changed
+- Removed the separate Cancel button
+- `peerDependencies.quill` range widened to `>=1.3.7`
+
 ## [0.1.0] - 07-08-2026
 ### Added
 - Initial release

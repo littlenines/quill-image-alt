@@ -255,9 +255,9 @@ useEffect(() => {
 
 ## [Problems](#problems)
 
-### <ins>Problem: The badge appears cut off or scrolls the editor to the wrong place</ins>
+### <ins>Problem: The badge or popover renders outside the editor when you scroll</ins>
 
-If your `.ql-container` has a fixed height like this:
+The badge and popover are attached directly to `.ql-container` (a sibling of `.ql-editor`, not a child of it). If your `.ql-container` has a fixed height like this:
 
 ```css
 .ql-container {
@@ -265,7 +265,7 @@ If your `.ql-container` has a fixed height like this:
 }
 ```
 
-the badge/popover may appear cut off at the edge of the editor. Instead, use `min-height` and `max-height`:
+there's nothing clipping or scrolling that content along with the editor, so as you scroll, the badge/popover can end up rendered outside the editor's box instead of moving with it. Instead, use `min-height` and `max-height`:
 
 ```css
 .ql-container {
@@ -275,9 +275,19 @@ the badge/popover may appear cut off at the edge of the editor. Instead, use `mi
 }
 ```
 
-This keeps the badge and popover fully visible and correctly positioned as the editor scrolls.
+This makes `.ql-container` itself the actual scrolling element, which keeps the badge and popover correctly contained and repositioned as you scroll. ( This is a standard problem I've seen with this Editor combined with other modules )
 
 ## [License](#license)
 
 MIT License.
 Free for personal and commercial use.
+
+---
+> [!NOTE]
+> If you encounter any bugs, memory leaks, or unexpected behavior, feel free to open an issue on the [GitHub repository](https://github.com/littlenines/quill-image-alt/issues).
+> Your feedback helps make the module better for everyone.
+> If you want to contribute to the project — whether it's fixing a bug or improving performance — your contributions are welcome and appreciated.
+
+> [!TIP]
+> If you just want the code and prefer to build your own module on top of it, you're free to do that.
+> Everything is located in the `/src` directory for full access and customization.
