@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 07-08-2026
+
+### Added
+- Readme with Demo example
+
 ## [0.1.2] - 07-08-2026
 
 - Initial publish
