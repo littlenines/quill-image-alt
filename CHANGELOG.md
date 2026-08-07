@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 07-08-2026
+
+- Initial publish
+
 ## [0.1.1] - 07-08-2026
 ### Added
 - Save button in the alt-text popover — Enter is no longer the only way to save
