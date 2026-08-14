@@ -14,7 +14,7 @@
     "quill-image-alt": "^0.1.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "resize-quill-image": "^1.0.12"
+    "resize-quill-image": "^1.0.13"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
