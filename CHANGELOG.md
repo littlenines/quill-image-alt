@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.4] - 28-09-2026
+
+### Changed
+- Type declarations are now built with `unplugin-dts` (replacing the deprecated `vite-plugin-dts`); the published bundle and typings are unchanged
+
 ## [0.1.3] - 07-08-2026
 
 ### Added
