@@ -1,10 +1,10 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
-import dts from 'vite-plugin-dts'
+import dts from 'unplugin-dts/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [dts({ rollupTypes: true })],
+  plugins: [dts({ bundleTypes: true })],
   build: {
     lib: {
       entry: 'src/index.ts',
@@ -21,10 +21,6 @@ export default defineConfig({
           name: 'QuillImageAlt',
           entryFileNames: 'index.iife.js',
           globals: { quill: 'Quill' },
-          // Quill's UMD build doesn't expose `Quill.Module` directly - it
-          // has to be pulled via `Quill.import('core/module')`. This module
-          // does `import { Module } from 'quill'`, which the IIFE bundle
-          // turns into a `Quill.Module` property read, so shim it in first.
           banner:
             '(function(){if(typeof Quill!=="undefined"&&!Quill.Module)try{Quill.Module=Quill.import("core/module");}catch(e){}})();',
         },
