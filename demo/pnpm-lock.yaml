@@ -21,8 +21,8 @@ importers:
         specifier: ^19.3.0
         version: 19.3.0(react@19.3.0)
       resize-quill-image:
-        specifier: ^1.0.15
-        version: 1.0.15(quill@2.0.3)
+        specifier: ^1.0.16
+        version: 1.0.16(quill@2.0.3)
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -841,8 +841,8 @@ packages:
     resolution: {integrity: sha512-E8LUcbtBWt20bbl2YoHfx4ZDBdxVTfOKtCZn9cDSJ4l6/nuoApcpIBcj47t2wZoVX8g2ZHuMHbiShgCR1T5Sog==}
     engines: {node: '>=0.10.0'}
 
-  resize-quill-image@1.0.15:
-    resolution: {integrity: sha512-5vl8t+VryVtMaT/EoIlpOZ46XA5eQjAtHLMfIO9Tx3uegFxpblBMSk+tpKbIDX3LgWdw/UaQ2Hz/BX6STicltA==}
+  resize-quill-image@1.0.16:
+    resolution: {integrity: sha512-08y5U2nyADUwgFoBITOM72oo3DRdMw3FeuvaZmjUMM5WnczcVYf/95ElT18ksxOORROYPOapb36EL53srtLUog==}
     peerDependencies:
       quill: ^2.0.3
 
@@ -1706,7 +1706,7 @@ snapshots:
 
   react@19.3.0: {}
 
-  resize-quill-image@1.0.15(quill@2.0.3):
+  resize-quill-image@1.0.16(quill@2.0.3):
     dependencies:
       quill: 2.0.3
 
