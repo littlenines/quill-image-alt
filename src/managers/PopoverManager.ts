@@ -1,4 +1,4 @@
-import type { ResolvedAltTextOptions } from '../constants'
+import { IME_PROCESSING_KEY_CODE, KEY, POPOVER_OFFSET_Y, type ResolvedAltTextOptions } from '../constants'
 import { toContainerOffset } from '../positioning'
 
 export interface PopoverCallbacks {
@@ -15,6 +15,7 @@ export class PopoverManager {
   private options: ResolvedAltTextOptions
   private callbacks: PopoverCallbacks
   element: HTMLDivElement | null = null
+  private listeners: AbortController | null = null
 
   constructor(parent: HTMLElement, options: ResolvedAltTextOptions, callbacks: PopoverCallbacks) {
     this.parent = parent
@@ -35,17 +36,6 @@ export class PopoverManager {
     input.placeholder = this.options.placeholder
     input.value = initialValue
 
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault()
-        this.callbacks.onSave(input.value)
-      } else if (event.key === 'Escape') {
-        event.preventDefault()
-        this.callbacks.onCancel()
-      }
-    })
-    input.addEventListener('blur', () => this.callbacks.onSave(input.value))
-
     const row = document.createElement('div')
     row.className = 'ql-alt-row'
 
@@ -56,8 +46,39 @@ export class PopoverManager {
     saveButton.title = 'Save'
     saveButton.innerHTML = SAVE_ICON
 
-    saveButton.addEventListener('click', () => this.callbacks.onSave(input.value))
-    saveButton.addEventListener('mousedown', (event) => event.preventDefault())
+    this.listeners = new AbortController()
+    const { signal } = this.listeners
+
+    popover.addEventListener(
+      'keydown',
+      (event) => {
+        // Enter during IME composition confirms the composition, not the alt text.
+        if (event.isComposing || event.keyCode === IME_PROCESSING_KEY_CODE) return
+
+        if (event.key === KEY.ENTER && event.target === input) {
+          event.preventDefault()
+          this.callbacks.onSave(input.value)
+        } else if (event.key === KEY.ESCAPE) {
+          event.preventDefault()
+          this.callbacks.onCancel()
+        }
+      },
+      { signal },
+    )
+
+    popover.addEventListener('focusout', (event) => {
+        if (event.relatedTarget instanceof Node && popover.contains(event.relatedTarget)) return
+        this.callbacks.onSave(input.value)
+      },
+      { signal },
+    )
+
+    popover.addEventListener('mousedown', (event) => {
+        if (event.target !== input) event.preventDefault()
+      },
+      { signal },
+    )
+    saveButton.addEventListener('click', () => this.callbacks.onSave(input.value), { signal })
 
     row.appendChild(input)
     row.appendChild(saveButton)
@@ -87,14 +108,19 @@ export class PopoverManager {
     const anchorRect = anchorEl.getBoundingClientRect()
     const offset = toContainerOffset(this.element, this.parent, {
       x: anchorRect.left,
-      y: anchorRect.bottom + 6,
+      y: anchorRect.bottom + POPOVER_OFFSET_Y,
     })
 
     Object.assign(this.element.style, { left: `${offset.left}px`, top: `${offset.top}px` })
   }
 
   remove(): void {
-    this.element?.remove()
+    const element = this.element
     this.element = null
+
+    this.listeners?.abort()
+    this.listeners = null
+
+    element?.remove()
   }
 }

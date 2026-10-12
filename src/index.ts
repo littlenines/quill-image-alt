@@ -28,7 +28,7 @@ class AltText extends Module<AltTextOptions> {
       throw new Error('AltText: quill.root has no parentNode')
     }
 
-    this.uiController = new AltTextUIController(rootParent, merged)
+    this.uiController = new AltTextUIController(rootParent, merged, () => this.quill.isEnabled())
 
     this.bindHandlers()
     this.addEventListeners()
@@ -58,6 +58,8 @@ class AltText extends Module<AltTextOptions> {
   }
 
   private handleMouseOver(event: MouseEvent): void {
+    if (!this.quill.isEnabled()) return
+
     if (event.target instanceof HTMLImageElement && this.quill.root.contains(event.target)) {
       this.uiController?.notifyHover(event.target, true)
     }
@@ -75,7 +77,8 @@ class AltText extends Module<AltTextOptions> {
 
   private handleEditorChange(name: string, range: { index: number; length: number } | null): void {
     if (name === 'selection-change') {
-      this.uiController?.notifySelection(range && range.length > 0 ? this.findImageAt(range.index) : null)
+      const spansImage = range && range.length > 0 && this.quill.isEnabled()
+      this.uiController?.notifySelection(spansImage ? this.findImageAt(range.index) : null)
       return
     }
 

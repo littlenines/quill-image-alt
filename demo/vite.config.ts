@@ -8,6 +8,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   ...(mode === 'local-src' && {
+    cacheDir: 'node_modules/.vite-local-src',
     resolve: {
       alias: { 'quill-image-alt': fileURLToPath(new URL('../src/index.ts', import.meta.url)) },
       dedupe: ['quill'],

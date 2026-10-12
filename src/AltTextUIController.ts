@@ -7,6 +7,7 @@ export class AltTextUIController {
 
   private readonly parent: HTMLElement
   private readonly options: ResolvedAltTextOptions
+  private readonly canEdit: () => boolean
 
   private badgeManager: BadgeManager
   private popoverManager: PopoverManager | null = null
@@ -16,9 +17,11 @@ export class AltTextUIController {
   private isHoveringBadge = false
   private hideTimer: ReturnType<typeof setTimeout> | null = null
 
-  constructor(parent: HTMLElement, options: ResolvedAltTextOptions) {
+  constructor(parent: HTMLElement, options: ResolvedAltTextOptions, canEdit: () => boolean = () => true) {
     this.parent = parent
     this.options = options
+    
+    this.canEdit = canEdit
 
     this.badgeManager = new BadgeManager(parent, options, {
       onClick: () => this.openPopover(),
@@ -63,9 +66,8 @@ export class AltTextUIController {
     this.hoveredImg = null
     this.isHoveringBadge = false
     this.selectedImg = null
+    this.discardPopover()
     this.cancelHide()
-    this.popoverManager?.remove()
-    this.popoverManager = null
     this.badgeManager.hide()
     this.img = null
   }
@@ -78,11 +80,18 @@ export class AltTextUIController {
   }
 
   destroy(): void {
-    this.cancelHide()
-    this.popoverManager?.remove()
+    this.discardPopover()
     this.badgeManager.remove()
-    this.popoverManager = null
+    this.cancelHide()
+    this.hoveredImg = null
+    this.selectedImg = null
     this.img = null
+  }
+
+  private discardPopover(): void {
+    const popover = this.popoverManager
+    this.popoverManager = null
+    popover?.remove()
   }
 
   private show(img: HTMLImageElement): void {
@@ -125,10 +134,10 @@ export class AltTextUIController {
   }
 
   private openPopover(): void {
-    if (!this.img || !this.badgeManager.element) return
+    if (!this.img || !this.badgeManager.element || !this.canEdit()) return
 
     this.cancelHide()
-    this.popoverManager?.remove()
+    this.discardPopover()
 
     const popoverManager = new PopoverManager(this.parent, this.options, {
       onSave: (value) => this.closePopover(value.trim()),

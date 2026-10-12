@@ -41,6 +41,18 @@ export const DEFAULT_OPTIONS: ResolvedAltTextOptions = {
 
 export const HIDE_DELAY = 200
 
+export const POPOVER_OFFSET_Y = 6
+
+export const KEY = {
+  ENTER: 'Enter',
+  ESCAPE: 'Escape',
+} as const
+
+// The keyCode browsers report for a key press an IME is still processing.
+// Safari sends the Enter that confirms a composition with this keyCode but
+// isComposing false, so isComposing alone isn't enough to detect it.
+export const IME_PROCESSING_KEY_CODE = 229
+
 interface PositionAnchor {
   xRatio: number
   yRatio: number

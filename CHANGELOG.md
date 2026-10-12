@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.6] - 12-10-2026
+
+### Fixed
+- `destroy()` threw `NotFoundError` in Chrome when called while the alt-text popover was open, leaving the badge behind and saving the half-typed text, it now tears down cleanly and discards the draft
+- Read-only editors (`readOnly: true` or `quill.disable()`) no longer show the badge or let alt text be edited
+- Clicking inside the popover (its padding or the hint) no longer closes it and saves the partial text, Tab to the Save button keeps it open, and Escape cancels from the Save button too
+- Pressing Enter to confirm an IME composition (Japanese, Chinese, Korean input) no longer saves the alt text mid-composition, including in Safari
+
 ## [0.1.5] - 12-10-2026
 
 ### Fixed

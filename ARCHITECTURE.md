@@ -42,6 +42,8 @@ The events it listens to:
 - `name === 'selection-change'` — if the selection actually spans an image blot, tell the controller it's selected; if not, tell it nothing is. A collapsed selection (a plain caret, `length === 0`) never counts: `descendant()` matches a caret sitting *just before* an image as that image, which is exactly where a click beside the image puts the caret, so without the `length > 0` check clicking next to an image would show its badge.
 - `name === 'text-change'` — if content changes while an image is active (e.g. it gets deleted, or the layout shifts), check whether that image still exists in the editor and notify the controller accordingly.
 
+**Read-only editors**: `mouseover` and `selection-change` are ignored while `quill.isEnabled()` is false (`readOnly: true`, or after `quill.disable()`), so the badge never appears there. `mouseout` is still handled, so a badge that was already showing when the editor got disabled can still hide. The controller also gets `() => quill.isEnabled()` as its `canEdit` check, which `openPopover()` consults: a badge shown before the editor was disabled can't open the popover anymore. That matters because saving writes `alt` straight onto the `<img>`, which would otherwise edit a read-only document.
+
 `findImageAt()` resolves a Quill document index to the actual `<img>` DOM node, via `quill.scroll.descendant(...)` against the `ImageBlot` class. That class is resolved once, as a module-level constant (`Quill.import('formats/image')`), rather than on every selection change.
 
 `destroy()` is the cleanup method: it removes all four listeners and calls `uiController.destroy()`. See the [Lifecycle](#cleanup--memory-leaks) section at the bottom.
@@ -101,7 +103,9 @@ These are tracked **by image identity**, not as plain booleans. A stale or reord
 
 **`scheduleHide()` / `cancelHide()`** manage the 200ms grace-period timer described above.
 
-**`openPopover()` / `closePopover(value)`** create and tear down the `PopoverManager`. `closePopover` takes `string | null`: a string saves that value (or clears `alt` if empty), `null` discards the edit. It clears `this.popoverManager` to `null` **before** calling `popover.remove()` — removing a focused `<input>` fires a synchronous `blur`, which re-enters `closePopover()`, and nulling the field first turns that re-entrant call into a no-op instead of a double-removal.
+**`openPopover()` / `closePopover(value)`** create and tear down the `PopoverManager`. `closePopover` takes `string | null`: a string saves that value (or clears `alt` if empty), `null` discards the edit. It clears `this.popoverManager` to `null` **before** calling `popover.remove()`, so nothing triggered by the removal can reach the popover again. `openPopover()` returns early unless `canEdit()` says the editor is editable (see read-only editors above).
+
+**`discardPopover()`** is the no-save variant, used by `destroy()`, `notifyRemoved()` and when `openPopover()` replaces an existing popover. It follows the same clear-then-remove order. Teardown must not save a half-typed draft or throw: in Chrome, removing the focused input fires `focusout` synchronously, *during* the removal. If that handler removed the same node, the outer removal would throw `NotFoundError` and abort `destroy()` halfway, leaving the badge in the DOM. `PopoverManager.remove()` prevents this by detaching its listeners before removing the element (see below).
 
 ---
 
@@ -117,11 +121,17 @@ Colors are set as CSS custom properties (`--ql-alt-badge-bg`, `--ql-alt-badge-mi
 
 ## `managers/PopoverManager.ts` — the input
 
-Creates the small panel with the `<input>` and a Save icon button sharing a single row (`.ql-alt-row`), plus the "Enter to save · Esc to cancel" hint below it — positioned just below wherever the badge currently is. The Save button exists because Enter-to-save alone isn't discoverable; there's no separate Cancel button — Escape (or clicking away, which saves via `blur`) already covers that, and a second button for it wasn't worth the extra width. The hint stays for keyboard users who don't need to reach for the mouse. Since the icon carries no visible text, the button has an explicit `aria-label` (and `title` for a hover tooltip) so its purpose is still conveyed non-visually.
+Creates the small panel with the `<input>` and a Save icon button sharing a single row (`.ql-alt-row`), plus the "Enter to save · Esc to cancel" hint below it — positioned just below wherever the badge currently is. The Save button exists because Enter-to-save alone isn't discoverable; there's no separate Cancel button — Escape (or clicking away, which saves via `focusout`) already covers that, and a second button for it wasn't worth the extra width. The hint stays for keyboard users who don't need to reach for the mouse. Since the icon carries no visible text, the button has an explicit `aria-label` (and `title` for a hover tooltip) so its purpose is still conveyed non-visually.
 
 `create()` calls `reposition(anchorEl)` **before** calling `input.focus()`. This ordering matters: an absolutely-positioned element with no `top`/`left` set yet renders at its static-flow position — which, appended after all the editor's content, is near the very bottom of the scrollable container. Focusing it there makes the browser auto-scroll the whole container down to reveal it, before the correct position is ever applied. Positioning first avoids that jump entirely.
 
-**The Save button blocks its own `mousedown`'s default action** (`event.preventDefault()`), which stops the input from losing focus when clicked. This matters because the input already has a `blur` handler that unconditionally saves (so clicking anywhere else outside the popover saves your edit) — without the `mousedown` guard, clicking Save would blur the input first (itself triggering a save with whatever's currently typed) before the button's own `click` handler ran a second, redundant save. Blocking the focus shift means blur never fires for this button, and its `click` handler is the only thing that runs.
+**All the popover's listeners sit on the popover element itself**, not on the input:
+
+- **`focusout` saves, but only once focus leaves the popover entirely.** If `relatedTarget` (where focus is going) is inside the popover, the handler ignores it. So Tab from the input to the Save button keeps the popover open, while clicking or tabbing anywhere outside it saves the edit. `focusout` bubbles, so this one listener covers focus leaving from either the input or the button.
+- **`mousedown` anywhere except the input has its default action blocked** (`event.preventDefault()`). Otherwise a click on the popover's padding, the hint or the Save button would move focus off the input, and the `focusout` handler would save and close the popover before the click landed. With focus kept in place, clicking Save runs only its `click` handler, and clicking the hint or padding does nothing. Mousedown inside the input itself is left alone, so the user can still place the caret.
+- **`keydown`**: Enter saves when it comes from the input, and Escape cancels from anywhere in the popover (input or Save button). Both are ignored while an IME composition is in progress (`event.isComposing`, or `keyCode === 229`, which is what Safari reports instead). For Japanese, Chinese and Korean input, Enter confirms the composed characters and must not save half-typed text.
+
+The listeners are registered with a shared `AbortController`'s `signal`, and **`remove()` aborts it before removing the element**. That order matters: removing the focused input fires `focusout` synchronously in Chrome, and with the listeners still attached, that would save during teardown and re-enter `remove()` on the node that's being removed (throwing `NotFoundError`).
 
 The input has an explicit `aria-label`, since placeholder text alone isn't reliably exposed as an accessible name by all assistive tech — worth being careful about, given the entire point of this module is authoring accessibility metadata.
 
@@ -176,7 +186,7 @@ scheduleHide() → (200ms later)
 
 ## Cleanup / memory leaks
 
-Every listener this module adds — `mouseover`/`mouseout`/`scroll` on `quill.root`, plus the `editor-change` subscription — is added in `index.ts`'s constructor and removed in its `destroy()`. The managers' own DOM listeners (badge click/hover, input keydown/blur) are removed by each manager's own `remove()`, called from `AltTextUIController.destroy()`.
+Every listener this module adds — `mouseover`/`mouseout`/`scroll` on `quill.root`, plus the `editor-change` subscription — is added in `index.ts`'s constructor and removed in its `destroy()`. The managers' own DOM listeners (badge click/hover; the popover's keydown, focusout and mousedown, plus the Save button's click) are removed by each manager's own `remove()`, called from `AltTextUIController.destroy()`. The popover's listeners are detached with an `AbortController` before its element is removed. `destroy()` is safe to call while the popover is open and focused: it discards the draft without saving and doesn't throw.
 
 In React, call it in the `useEffect` cleanup:
 
