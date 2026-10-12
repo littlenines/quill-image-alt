@@ -103,9 +103,9 @@ These are tracked **by image identity**, not as plain booleans. A stale or reord
 
 **`scheduleHide()` / `cancelHide()`** manage the 200ms grace-period timer described above.
 
-**`openPopover()` / `closePopover(value)`** create and tear down the `PopoverManager`. `closePopover` takes `string | null`: a string saves that value (or clears `alt` if empty), `null` discards the edit. It clears `this.popoverManager` to `null` **before** calling `popover.remove()`, so nothing triggered by the removal can reach the popover again. `openPopover()` returns early unless `canEdit()` says the editor is editable (see read-only editors above).
+**`openPopover()` / `closePopover(value)`** create and tear down the `PopoverManager`. `closePopover` takes `string | null`: a string saves that value (or clears `alt` if empty), `null` discards the edit. It closes the popover through `discardPopover()` first, then applies the value to the image, so the clear-then-remove order lives in one place. `openPopover()` returns early unless `canEdit()` says the editor is editable (see read-only editors above).
 
-**`discardPopover()`** is the no-save variant, used by `destroy()`, `notifyRemoved()` and when `openPopover()` replaces an existing popover. It follows the same clear-then-remove order. Teardown must not save a half-typed draft or throw: in Chrome, removing the focused input fires `focusout` synchronously, *during* the removal. If that handler removed the same node, the outer removal would throw `NotFoundError` and abort `destroy()` halfway, leaving the badge in the DOM. `PopoverManager.remove()` prevents this by detaching its listeners before removing the element (see below).
+**`discardPopover()`** removes the popover without saving. `closePopover()` uses it, and so do `destroy()`, `notifyRemoved()` and `openPopover()` when it replaces an existing popover. It clears `this.popoverManager` to `null` **before** calling `remove()`, so nothing triggered by the removal can reach the popover again. Teardown must not save a half-typed draft or throw: in Chrome, removing the focused input fires `focusout` synchronously, *during* the removal. If that handler removed the same node, the outer removal would throw `NotFoundError` and abort `destroy()` halfway, leaving the badge in the DOM. `PopoverManager.remove()` prevents this by detaching its listeners before removing the element (see below).
 
 ---
 
@@ -165,9 +165,9 @@ User presses Enter
        │
        ▼
 AltTextUIController.closePopover(value)
+  → discardPopover() → PopoverManager.remove()
   → img.setAttribute('alt', value)     (img = A, never B)
   → BadgeManager.setMissing(false)
-  → PopoverManager.remove()
   → scheduleHide()
 
 User moves the mouse away
@@ -186,7 +186,7 @@ scheduleHide() → (200ms later)
 
 ## Cleanup / memory leaks
 
-Every listener this module adds — `mouseover`/`mouseout`/`scroll` on `quill.root`, plus the `editor-change` subscription — is added in `index.ts`'s constructor and removed in its `destroy()`. The managers' own DOM listeners (badge click/hover; the popover's keydown, focusout and mousedown, plus the Save button's click) are removed by each manager's own `remove()`, called from `AltTextUIController.destroy()`. The popover's listeners are detached with an `AbortController` before its element is removed. `destroy()` is safe to call while the popover is open and focused: it discards the draft without saving and doesn't throw.
+Every listener this module adds — `mouseover`/`mouseout`/`scroll` on `quill.root`, plus the `editor-change` subscription — is added in `index.ts`'s constructor and removed in its `destroy()`. The managers' own DOM listeners (badge click/hover; the popover's keydown, focusout and mousedown, plus the Save button's click) are removed by each manager's own `remove()`, called from `AltTextUIController.destroy()`. Both managers register their listeners with an `AbortController`'s `signal` and abort it before removing their element, so teardown is one call and no handler can fire during removal. `destroy()` is safe to call while the popover is open and focused: it discards the draft without saving and doesn't throw.
 
 In React, call it in the `useEffect` cleanup:
 

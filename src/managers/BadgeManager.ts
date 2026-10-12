@@ -12,6 +12,7 @@ export class BadgeManager {
   private options: ResolvedAltTextOptions
   private callbacks: BadgeCallbacks
   element: HTMLButtonElement | null = null
+  private listeners: AbortController | null = null
 
   constructor(parent: HTMLElement, options: ResolvedAltTextOptions, callbacks: BadgeCallbacks) {
     this.parent = parent
@@ -32,9 +33,12 @@ export class BadgeManager {
     badge.style.setProperty('--ql-alt-badge-text', this.options.textColor)
     Object.assign(badge.style, this.options.badgeStyles)
 
-    badge.addEventListener('click', this.callbacks.onClick)
-    badge.addEventListener('mouseenter', this.callbacks.onMouseEnter)
-    badge.addEventListener('mouseleave', this.callbacks.onMouseLeave)
+    this.listeners = new AbortController()
+    const { signal } = this.listeners
+
+    badge.addEventListener('click', this.callbacks.onClick, { signal })
+    badge.addEventListener('mouseenter', this.callbacks.onMouseEnter, { signal })
+    badge.addEventListener('mouseleave', this.callbacks.onMouseLeave, { signal })
 
     this.parent.appendChild(badge)
     this.element = badge
@@ -69,11 +73,12 @@ export class BadgeManager {
   }
 
   remove(): void {
-    if (!this.element) return
-    this.element.removeEventListener('click', this.callbacks.onClick)
-    this.element.removeEventListener('mouseenter', this.callbacks.onMouseEnter)
-    this.element.removeEventListener('mouseleave', this.callbacks.onMouseLeave)
-    this.element.remove()
+    const element = this.element
     this.element = null
+
+    this.listeners?.abort()
+    this.listeners = null
+
+    element?.remove()
   }
 }

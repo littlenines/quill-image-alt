@@ -150,12 +150,11 @@ export class AltTextUIController {
   }
 
   private closePopover(value: string | null): void {
-    const popover = this.popoverManager
+    if (!this.popoverManager) return
+
+    this.discardPopover()
+
     const img = this.img
-
-    if (!popover) return
-
-    this.popoverManager = null
 
     if (value !== null && img) {
       if (value) img.setAttribute('alt', value)
@@ -164,7 +163,6 @@ export class AltTextUIController {
       this.badgeManager.setMissing(!value)
     }
 
-    popover.remove()
     this.scheduleHide()
   }
 }
