@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import Quill from 'quill'
 import AltText from '../src'
 
@@ -62,6 +62,51 @@ describe('AltText module (wired into a real Quill instance)', () => {
 
     const badge = quill.root.parentElement?.querySelector<HTMLButtonElement>('.ql-alt-badge')
     expect(badge?.style.display).toBe('flex')
+  })
+
+  it('does not show the badge for a caret right before or after the image', () => {
+    const { quill } = setup()
+    const badgeDisplay = () => quill.root.parentElement?.querySelector<HTMLButtonElement>('.ql-alt-badge')?.style.display
+
+    quill.setSelection(0, 0, 'api')
+    expect(badgeDisplay()).not.toBe('flex')
+
+    quill.setSelection(1, 0, 'api')
+    expect(badgeDisplay()).not.toBe('flex')
+  })
+
+  it('does not show the badge for a caret next to an image that follows text', () => {
+    const editorEl = document.createElement('div')
+    document.body.appendChild(editorEl)
+    const quill = new Quill(editorEl, { modules: { altText: true } })
+    quill.setContents([{ insert: 'ab' }, { insert: { image: PIXEL_PNG } }, { insert: 'cd\n' }])
+    const badgeDisplay = () => quill.root.parentElement?.querySelector<HTMLButtonElement>('.ql-alt-badge')?.style.display
+
+    quill.setSelection(2, 0, 'api')
+    expect(badgeDisplay()).not.toBe('flex')
+
+    quill.setSelection(3, 0, 'api')
+    expect(badgeDisplay()).not.toBe('flex')
+
+    quill.setSelection(2, 1, 'api')
+    expect(badgeDisplay()).toBe('flex')
+  })
+
+  it('hides the badge again when the selection collapses to a caret beside the image', () => {
+    vi.useFakeTimers()
+    try {
+      const { quill } = setup()
+      const badgeDisplay = () => quill.root.parentElement?.querySelector<HTMLButtonElement>('.ql-alt-badge')?.style.display
+
+      quill.setSelection(0, 1, 'api')
+      expect(badgeDisplay()).toBe('flex')
+
+      quill.setSelection(0, 0, 'api')
+      vi.runAllTimers()
+      expect(badgeDisplay()).not.toBe('flex')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('saves alt text through the badge -> popover flow and it lands on the real image blot', () => {

@@ -75,7 +75,7 @@ class AltText extends Module<AltTextOptions> {
 
   private handleEditorChange(name: string, range: { index: number; length: number } | null): void {
     if (name === 'selection-change') {
-      this.uiController?.notifySelection(range ? this.findImageAt(range.index) : null)
+      this.uiController?.notifySelection(range && range.length > 0 ? this.findImageAt(range.index) : null)
       return
     }
 

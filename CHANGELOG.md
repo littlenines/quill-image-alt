@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.5] - 12-10-2026
+
+### Fixed
+- Alt badge no longer appears when clicking beside an image — a plain cursor next to the image was treated as selecting it
+
 ## [0.1.4] - 28-09-2026
 
 ### Changed

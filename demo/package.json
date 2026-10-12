@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "vite --mode local-src",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -14,7 +15,7 @@
     "quill-image-alt": "^0.1.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "resize-quill-image": "^1.0.14"
+    "resize-quill-image": "^1.0.15"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
